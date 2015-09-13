@@ -23,12 +23,14 @@ int main(void)
 		 perror("serverfifo error");
 	}
 
-	/*server write part*/
-	printf("open for writing... \n");
-	fd2=open(FIFO2,O_WRONLY);//阻塞
 	fd1=open(FIFO1,O_RDONLY);//阻塞
-	//fd=open(FIFO,O_RDONLY|O_NONBLOCK);//非阻塞
-	printf("opened ... \n");
+	if(fd1<0)
+	{
+		perror("Failed to open fifo:");
+		return -1;
+	} 
+
+	fd2=open(FIFO2,O_WRONLY);//阻塞
 	if(fd2<0)
 	{
 		perror("Failed to open fifo:");
@@ -36,27 +38,8 @@ int main(void)
 	}
 	while(1)
 	{
-		fgets(buf,128,stdin);
-		write(fd2,buf,strlen(buf));
-		if(strncmp(buf,"exit",4)==0)
-		{
-			break;
-		}
-	}
-	
-	/*server read part*/
-	printf("open for reading... \n");
-	//en(FIFO1,O_RDONLY);//阻塞
-	//fd=open(FIFO,O_RDONLY|O_NONBLOCK);//非阻塞
-	printf("opened ... \n");
-	if(fd1<0)
-	{
-		perror("Failed to open fifo:");
-		return -1;
-	}
-	while(1)
-	{
 		int count;
+		printf("read from client now\n");
 		count=read(fd1,buf,127);
 		if(count>0)
 		{
@@ -67,8 +50,15 @@ int main(void)
 		{
 			break;
 		}
-	}
-	
+		printf("then i write to client:\n");
+		fgets(buf,128,stdin);
+		write(fd2,buf,strlen(buf));
+		if(strncmp(buf,"exit",4)==0)
+		{
+			break;
+		}
+
+	}	 	
 	close(fd1);
 	close(fd2);
 	unlink(FIFO1);	
